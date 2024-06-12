@@ -66,23 +66,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter UserName",
-                  Icons.person_outline,
-                  false,
-                  _userNameTextController,
+                  Icons.person_outline,false,_userNameTextController,
                 ),
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter Email",
-                  Icons.person_outline,
-                  false,
-                  _emailTextController,
+                  Icons.person_outline,false,_emailTextController,
                 ),
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter Password",
-                  Icons.lock_outlined,
-                  true,
-                  _passwordTextController,
+                  Icons.lock_outlined,true,_passwordTextController,
                 ),
                 const SizedBox(height: 20),
                 signInSignUpButton(
@@ -111,7 +105,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                         position: DelightSnackbarPosition.top,
-                        autoDismiss: true,
+                      //  autoDismiss: true,
+                        autoDismiss: false,
                         snackbarDuration: Durations.extralong4,
                       ).show(context);
                       return;
