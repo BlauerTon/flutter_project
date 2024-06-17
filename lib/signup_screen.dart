@@ -20,6 +20,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
   TextEditingController _userNameTextController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   String? _validatePassword(String password) {
     final passwordRegex = RegExp(
@@ -30,6 +31,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return "Password must be at least 8 characters long, include a letter, a symbol, and a digit";
     }
     return null;
+  }
+
+  Widget reusableTextField(String hintText, IconData icon, bool isPasswordType,
+      TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      obscureText: isPasswordType ? !_isPasswordVisible : false,
+      enableSuggestions: !isPasswordType,
+      autocorrect: !isPasswordType,
+      cursorColor: Colors.white,
+      style: TextStyle(color: Colors.white.withOpacity(0.9)),
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          icon,
+          color: Colors.white70,
+        ),
+        suffixIcon: isPasswordType
+            ? IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.white70,
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        )
+            : null,
+        labelText: hintText,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.9)),
+        filled: true,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+        fillColor: Colors.white.withOpacity(0.3),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: const BorderSide(width: 0, style: BorderStyle.none)),
+      ),
+      keyboardType: isPasswordType
+          ? TextInputType.visiblePassword
+          : TextInputType.emailAddress,
+    );
   }
 
   @override
@@ -66,17 +109,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter UserName",
-                  Icons.person_outline,false,_userNameTextController,
+                  Icons.person_outline, false, _userNameTextController,
                 ),
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter Email",
-                  Icons.person_outline,false,_emailTextController,
+                  Icons.person_outline, false, _emailTextController,
                 ),
                 const SizedBox(height: 20),
                 reusableTextField(
                   "Enter Password",
-                  Icons.lock_outlined,true,_passwordTextController,
+                  Icons.lock_outlined, true, _passwordTextController,
                 ),
                 const SizedBox(height: 20),
                 signInSignUpButton(
@@ -105,7 +148,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           );
                         },
                         position: DelightSnackbarPosition.top,
-                      //  autoDismiss: true,
                         autoDismiss: false,
                         snackbarDuration: Durations.extralong4,
                       ).show(context);
@@ -150,7 +192,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         print("Error creating user or retrieving user object");
                       }
                     } on FirebaseAuthException catch (error) {
-                      print("Error creating account: ${error.message}");
+                      if (error.code == 'email-already-in-use') {
+                        DelightToastBar(
+                          builder: (context) {
+                            return ToastCard(
+                              leading: Icon(
+                                Icons.error,
+                                size: 32,
+                                color: Colors.red,
+                              ),
+                              title: Text(
+                                "An account with this email already exists",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          },
+                          position: DelightSnackbarPosition.top,
+                          autoDismiss: true,
+                          snackbarDuration: Durations.extralong4,
+                        ).show(context);
+                      } else {
+                        print("Error creating account: ${error.message}");
+                        DelightToastBar(
+                          builder: (context) {
+                            return const ToastCard(
+                              leading: Icon(
+                                Icons.notifications,
+                                size: 32,
+                              ),
+                              title: Text(
+                                "Error in creating account",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          },
+                          position: DelightSnackbarPosition.top,
+                          autoDismiss: true,
+                          snackbarDuration: Durations.extralong4,
+                        ).show(context);
+                      }
                     } catch (error) {
                       print("Error: ${error.toString()}");
                       DelightToastBar(
