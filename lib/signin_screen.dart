@@ -54,7 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
             autoDismiss: true,
             snackbarDuration: Durations.extralong4,
           ).show(context);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
         } else {
           await FirebaseAuth.instance.signOut();
           DelightToastBar(
