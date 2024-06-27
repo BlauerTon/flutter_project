@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-//import 'package:flutter_blue/flutter_blue.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'util/smart_device_box.dart';
 import 'bluetooth_page.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +17,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final double horizontalPadding = 40;
   final double verticalPadding = 25;
+  BluetoothConnection? connection;
+
   List mySmartDevices = [
     ["Kitchen", "lib/icons/light-bulb.png", false],
     ["AC", "lib/icons/air-conditioner.png", false],
@@ -21,17 +26,56 @@ class _HomePageState extends State<HomePage> {
     ["Fan", "lib/icons/fan.png", false],
   ];
 
-  // Function to send a message via Bluetooth
+  @override
+  void initState() {
+    super.initState();
+    _initBluetooth();
+  }
+
+  void _initBluetooth() async {
+    // Initialize Bluetooth connection (assuming the device is already paired)
+    // You need to replace the address with the MAC address of your HC-05 module
+    String address = "98:D3:11:FD:35:8F"; // Replace with the MAC address of your HC-05
+    try {
+      connection = await BluetoothConnection.toAddress(address);
+      print('Connected to the device');
+    } catch (e) {
+      print('Error connecting to device: $e');
+    }
+  }
+
   void sendMessage(String message) async {
-    // Placeholder for actual Bluetooth communication code
-    print('Sending message: $message');
+    if (connection != null && connection!.isConnected) {
+      connection!.output.add(Uint8List.fromList(utf8.encode(message)));
+      await connection!.output.allSent;
+      print('Sent message: $message');
+    } else {
+      print('No Bluetooth connection');
+    }
   }
 
   void powerSwitchChanged(bool value, int index) {
     setState(() {
       mySmartDevices[index][2] = value;
     });
-    String command = mySmartDevices[index][0].trim() + (value ? " ON" : " OFF");
+    String command;
+    switch (index) {
+      case 0: // Kitchen
+        command = value ? "K" : "N";
+        break;
+      case 1: // AC
+        command = value ? "A" : "C";
+        break;
+      case 2: // TV
+        command = value ? "T" : "V";
+        break;
+      case 3: // Fan
+        command = value ? "F" : "N";
+        break;
+      default:
+        command = "";
+        break;
+    }
     sendMessage(command);
   }
 
