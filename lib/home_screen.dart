@@ -1,7 +1,8 @@
-//version
 import 'package:flutter/material.dart';
+//import 'package:flutter_blue/flutter_blue.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'util/smart_device_box.dart';
+import 'bluetooth_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,24 +12,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // padding constants
   final double horizontalPadding = 40;
   final double verticalPadding = 25;
-
-  // list of smart devices
   List mySmartDevices = [
-    // [ smartDeviceName, iconPath , powerStatus ]
-    ["Kitchen ", "lib/icons/light-bulb.png", false],
+    ["Kitchen", "lib/icons/light-bulb.png", false],
     ["AC", "lib/icons/air-conditioner.png", false],
     ["TV", "lib/icons/smart-tv.png", false],
     ["Fan", "lib/icons/fan.png", false],
   ];
 
-  // power button switched
+  // Function to send a message via Bluetooth
+  void sendMessage(String message) async {
+    // Placeholder for actual Bluetooth communication code
+    print('Sending message: $message');
+  }
+
   void powerSwitchChanged(bool value, int index) {
     setState(() {
       mySmartDevices[index][2] = value;
     });
+    String command = mySmartDevices[index][0].trim() + (value ? " ON" : " OFF");
+    sendMessage(command);
   }
 
   @override
@@ -40,7 +44,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // app bar
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: horizontalPadding,
@@ -49,26 +52,28 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // menu icon
-                    Image.asset(
-                      'lib/icons/menu.png',
-                      height: 45,
-                      color: Colors.grey[800],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => BluetoothDeviceListScreen()),
+                        );
+                      },
+                      child: Image.asset(
+                        'lib/icons/menu.png',
+                        height: 45,
+                        color: Colors.grey[800],
+                      ),
                     ),
-
-                    // account icon
                     Icon(
                       Icons.person,
                       size: 45,
                       color: Colors.grey[800],
-                    )
+                    ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // welcome home
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
@@ -85,9 +90,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 25),
-
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40.0),
                 child: Divider(
@@ -95,10 +98,7 @@ class _HomePageState extends State<HomePage> {
                   color: Color.fromARGB(255, 204, 204, 204),
                 ),
               ),
-
               const SizedBox(height: 25),
-
-              // smart devices grid
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Text(
@@ -111,8 +111,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // grid
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: GridView.builder(
