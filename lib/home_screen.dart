@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:delightful_toast/delight_toast.dart';
+import 'package:delightful_toast/toast/components/toast_card.dart';
+import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'util/smart_device_box.dart';
 import 'bluetooth_page.dart';
@@ -34,13 +37,44 @@ class _HomePageState extends State<HomePage> {
 
   void _initBluetooth() async {
     // Initialize Bluetooth connection (assuming the device is already paired)
-    // You need to replace the address with the MAC address of your HC-05 module
     String address = "98:D3:11:FD:35:8F"; // Replace with the MAC address of your HC-05
     try {
       connection = await BluetoothConnection.toAddress(address);
       print('Connected to the device');
+      connection!.input!.listen(_onDataReceived).onDone(() {
+        print('Disconnected by remote request');
+      });
     } catch (e) {
       print('Error connecting to device: $e');
+    }
+  }
+
+  void _onDataReceived(Uint8List data) {
+    String message = utf8.decode(data);
+    if (message.contains("** Warning!!!!   Fire detected!!! **")) {
+      DelightToastBar(
+        builder: (context) {
+          return const ToastCard(
+            leading: Icon(
+              Icons.notifications,
+              size: 32,
+              color: Colors.white,
+            ),
+            title: Text(
+              "Potential Fire Detected",
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                backgroundColor: Colors.red,
+                color: Colors.white,
+              ),
+            ),
+          );
+        },
+        position: DelightSnackbarPosition.top,
+        autoDismiss: true,
+        snackbarDuration: Durations.extralong4,
+      ).show(context); // <-- Call show() method to display the toast
     }
   }
 
@@ -148,10 +182,9 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   "Smart Devices",
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    color: Colors.grey.shade800,
-                  ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: Colors.grey.shade800),
                 ),
               ),
               const SizedBox(height: 10),

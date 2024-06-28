@@ -1,3 +1,9 @@
+import 'dart:typed_data';
+
+import 'package:delightful_toast/delight_toast.dart';
+import 'package:delightful_toast/toast/components/toast_card.dart';
+import 'package:delightful_toast/toast/utils/enums.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -9,6 +15,7 @@ class BluetoothDeviceListScreen extends StatefulWidget {
 
 class _BluetoothDeviceListScreenState extends State<BluetoothDeviceListScreen> {
   List<BluetoothDiscoveryResult> _devices = [];
+  late BluetoothConnection _connection;
   bool _isDiscovering = false;
 
   @override
@@ -48,13 +55,69 @@ class _BluetoothDeviceListScreenState extends State<BluetoothDeviceListScreen> {
   void _connectToDevice(BluetoothDevice device) async {
     try {
       if (device != null) {
-        BluetoothConnection connection = await BluetoothConnection.toAddress(device.address);
+        _connection = await BluetoothConnection.toAddress(device.address);
         print('Connected to the device');
-        // Handle connection
+
+        DelightToastBar(
+          builder: (context) {
+            return const ToastCard(
+              leading: Icon(
+                Icons.bluetooth,
+                size: 32,
+                color: Colors.black12,
+              ),
+              title: Text(
+                "Connected to the device",
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          },
+          position: DelightSnackbarPosition.top,
+          autoDismiss: true,
+          snackbarDuration: Durations.extralong4,
+        ).show(context);
+
+        _connection.input?.listen((Uint8List data) {
+          String incomingMessage = String.fromCharCodes(data);
+          print('Data incoming: $incomingMessage');
+
+          if (incomingMessage.contains('** Warning!!!!   Fire detected!!! **')) {
+            _showFireNotification();
+          }
+        }).onDone(() {
+          print('Disconnected by remote request');
+        });
       }
     } catch (e) {
       print('Error connecting to device: $e');
     }
+  }
+
+  void _showFireNotification() {
+    DelightToastBar(
+      builder: (context) {
+        return const ToastCard(
+          leading: Icon(
+            Icons.warning,
+            size: 32,
+            color: Colors.red,
+          ),
+          title: Text(
+            "Fire detected!",
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+        );
+      },
+      position: DelightSnackbarPosition.top,
+      autoDismiss: true,
+      snackbarDuration: Durations.extralong4,
+    ).show(context);
   }
 
   @override
@@ -66,7 +129,7 @@ class _BluetoothDeviceListScreenState extends State<BluetoothDeviceListScreen> {
           _isDiscovering
               ? Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircularProgressIndicator(color: Colors.white),
+            child: CircularProgressIndicator(color: Colors.black),
           )
               : IconButton(
             icon: Icon(Icons.refresh),
