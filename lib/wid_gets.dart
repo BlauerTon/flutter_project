@@ -118,14 +118,14 @@ class NavDrawer extends StatelessWidget {
         children: <Widget>[
           DrawerHeader(
             child: Text(
-              'Profile menu',
+              'Profile',
               style: TextStyle(color: Colors.white, fontSize: 25),
             ),
             decoration: BoxDecoration(
                 color: Colors.green,
                 image: DecorationImage(
                     fit: BoxFit.fill,
-                    image: AssetImage('assets/images/cover.jpg'))),
+                    image: AssetImage('assets/images/cover.jpeg'))),
           ),
           ListTile(
             leading: Icon(Icons.input),
@@ -134,7 +134,7 @@ class NavDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.verified_user),
-            title: Text('Profile'),
+            title: Text('Verified Profile'),
             onTap: () => {Navigator.of(context).pop()},
           ),
           ListTile(
