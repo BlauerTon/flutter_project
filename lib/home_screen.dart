@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
+import 'signin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'util/smart_device_box.dart';
 import 'bluetooth_page.dart';
+import 'wid_gets.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,9 +22,82 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  late final LocalAuthentication auth;
+  bool _supportState = false;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+
+    _initBluetooth();
+    _getCurrentUser();
+
+
+    super.initState();
+    auth = LocalAuthentication();
+    auth.isDeviceSupported().then(
+          (bool isSupported) {
+        setState(() {
+          _supportState = isSupported;
+        });
+        if (isSupported) {
+          _authenticate();
+        }
+      },
+    );
+  }
+
+  Future<void> _authenticate() async {
+    try {
+      bool authenticated = await auth.authenticate(
+        localizedReason: 'Authenticate to access home controls',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+      setState(() {
+        _isAuthenticated = authenticated;
+      });
+      if (!authenticated) {
+        _showAuthenticationFailedDialog();
+      }
+      print("Authenticated: $authenticated");
+    } on PlatformException catch (e) {
+      print(e);
+      _showAuthenticationFailedDialog();
+    }
+  }
+
+  void _showAuthenticationFailedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Authentication Failed'),
+          content: Text('You could not be authenticated. Please try again.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignInScreen()),
+                );
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   final double horizontalPadding = 40;
   final double verticalPadding = 25;
   BluetoothConnection? connection;
+  String username = "";
 
   List mySmartDevices = [
     ["Kitchen", "lib/icons/light-bulb.png", false],
@@ -29,11 +106,15 @@ class _HomePageState extends State<HomePage> {
     ["Fan", "lib/icons/fan.png", false],
   ];
 
+  /*
   @override
   void initState() {
     super.initState();
     _initBluetooth();
+    _getCurrentUser();
   }
+
+   */
 
   void _initBluetooth() async {
     // Initialize Bluetooth connection (assuming the device is already paired)
@@ -113,10 +194,20 @@ class _HomePageState extends State<HomePage> {
     sendMessage(command);
   }
 
+  void _getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        username = user.displayName ?? "User";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
+      drawer: NavDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -143,10 +234,19 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.grey[800],
                       ),
                     ),
-                    Icon(
-                      Icons.person,
-                      size: 45,
-                      color: Colors.grey[800],
+                    Builder(
+                      builder: (context) {
+                        return GestureDetector(
+                          onTap: () {
+                            Scaffold.of(context).openDrawer(); // Open the drawer when the icon is tapped
+                          },
+                          child: Icon(
+                            Icons.person,
+                            size: 45,
+                            color: Colors.grey[800],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -158,11 +258,11 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Welcome Home,",
+                      "Welcome Home",
                       style: TextStyle(fontSize: 20, color: Colors.grey.shade800),
                     ),
                     Text(
-                      'Ray Bands',
+                      username,
                       style: GoogleFonts.bebasNeue(fontSize: 72),
                     ),
                   ],
