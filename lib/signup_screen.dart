@@ -161,6 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       );
                       final user = userCredential.user;
                       if (user != null) {
+                        await user.updateDisplayName(_userNameTextController.text);
                         await user.sendEmailVerification();
                         DelightToastBar(
                           builder: (context) {
