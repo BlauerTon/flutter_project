@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'signin_screen.dart';
+import 'package:delightful_toast/delight_toast.dart';
+import 'package:delightful_toast/toast/components/toast_card.dart';
+import 'package:delightful_toast/toast/utils/enums.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 Image logoWidget(String imageName){
   return Image.asset(
@@ -102,4 +107,103 @@ Container firebaseUIButton(BuildContext context, String title, Function onTap) {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)))),
     ),
   );
+}
+
+class NavDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            child: Text(
+              'Profile menu',
+              style: TextStyle(color: Colors.white, fontSize: 25),
+            ),
+            decoration: BoxDecoration(
+                color: Colors.green,
+                image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: AssetImage('assets/images/cover.jpg'))),
+          ),
+          ListTile(
+            leading: Icon(Icons.input),
+            title: Text('Welcome'),
+            onTap: () => {},
+          ),
+          ListTile(
+            leading: Icon(Icons.verified_user),
+            title: Text('Profile'),
+            onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.border_color),
+            title: Text('Feedback'),
+            onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            title: Text('Logout'),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Confirm Logout'),
+                    content: Text('Are you sure you want to logout?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close dialog
+                        },
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                          DelightToastBar(
+                            builder: (context) {
+                              return const ToastCard(
+                                leading: Icon(
+                                  Icons.notifications,
+                                  size: 32,
+                                ),
+                                title: Text(
+                                  "You have been logged out",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              );
+                            },
+                            position: DelightSnackbarPosition.top,
+                            autoDismiss: true,
+                            snackbarDuration: Durations.extralong4,
+                          ).show(context);
+                          print("Signed Out");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => SignInScreen()),
+                          );
+                        },
+                        child: Text('Logout'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+
+        ],
+      ),
+    );
+  }
 }
