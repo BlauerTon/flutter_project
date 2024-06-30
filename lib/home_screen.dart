@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
 
   void _initBluetooth() async {
     // Initialize Bluetooth connection (assuming the device is already paired)
-    String address = "98:D3:11:FD:35:8F"; // Replace with the MAC address of your HC-05
+    String address = "98:D3:11:FD:35:8F";
     try {
       connection = await BluetoothConnection.toAddress(address);
       print('Connected to the device');
@@ -155,7 +155,7 @@ class _HomePageState extends State<HomePage> {
         position: DelightSnackbarPosition.top,
         autoDismiss: true,
         snackbarDuration: Durations.extralong4,
-      ).show(context); // <-- Call show() method to display the toast
+      ).show(context);
     }
   }
 
@@ -238,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                       builder: (context) {
                         return GestureDetector(
                           onTap: () {
-                            Scaffold.of(context).openDrawer(); // Open the drawer when the icon is tapped
+                            Scaffold.of(context).openDrawer();
                           },
                           child: Icon(
                             Icons.person,
