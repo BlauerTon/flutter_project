@@ -132,12 +132,15 @@ class _HomePageState extends State<HomePage> {
 
   void _onDataReceived(Uint8List data) {
     String message = utf8.decode(data);
+    print("Received message: $message");
+
     if (message.contains("** Warning!!!!   Fire detected!!! **")) {
+      print("Fire detected message received!");
       DelightToastBar(
         builder: (context) {
           return const ToastCard(
             leading: Icon(
-              Icons.notifications,
+              Icons.local_fire_department_rounded,
               size: 32,
               color: Colors.white,
             ),
@@ -159,6 +162,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   void sendMessage(String message) async {
     if (connection != null && connection!.isConnected) {
       connection!.output.add(Uint8List.fromList(utf8.encode(message)));
@@ -173,6 +177,32 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       mySmartDevices[index][2] = value;
     });
+
+    if (mySmartDevices.every((device) => device[2] == true)) {
+      DelightToastBar(
+        builder: (context) {
+          return const ToastCard(
+            leading: Icon(
+              Icons.electric_bolt_outlined,
+              size: 32,
+              color: Colors.black,
+            ),
+            title: Text(
+              "Too many devices powered on. Consider saving power",
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          );
+        },
+        position: DelightSnackbarPosition.top,
+        autoDismiss: false,
+        snackbarDuration: Durations.extralong4,
+      ).show(context);
+    }
+
+
     String command;
     switch (index) {
       case 0: // Kitchen
@@ -185,7 +215,7 @@ class _HomePageState extends State<HomePage> {
         command = value ? "T" : "V";
         break;
       case 3: // Fan
-        command = value ? "F" : "N";
+        command = value ? "F" : "M";
         break;
       default:
         command = "";

@@ -4,6 +4,8 @@ import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'power_consumption.dart';
+
 
 Image logoWidget(String imageName){
   return Image.asset(
@@ -138,9 +140,12 @@ class NavDrawer extends StatelessWidget {
             onTap: () => {Navigator.of(context).pop()},
           ),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
-            onTap: () => {Navigator.of(context).pop()},
+            leading: Icon(Icons.power_rounded),
+            title: Text('Power Analytics'),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PowerConsumptionPage()));
+            },
+
           ),
           ListTile(
             leading: Icon(Icons.border_color),
