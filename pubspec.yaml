@@ -48,6 +48,7 @@ dependencies:
   flutter_blue_plus: ^1.32.8
   get: ^4.6.6
   fl_chart: ^0.68.0
+  flutter_local_notifications: ^9.3.0
   # permission_handler: ^10.2.0
 
 dev_dependencies:

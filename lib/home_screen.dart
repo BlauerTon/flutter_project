@@ -11,8 +11,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'util/smart_device_box.dart';
 import 'bluetooth_page.dart';
+import 'fire_page.dart';
 import 'wid_gets.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,19 +24,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
+  final double horizontalPadding = 40;
+  final double verticalPadding = 25;
   late final LocalAuthentication auth;
   bool _supportState = false;
   bool _isAuthenticated = false;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  BluetoothConnection? connection;
+  String username = "";
+
+  List mySmartDevices = [
+    ["Kitchen", "lib/icons/light-bulb.png", false],
+    ["AC", "lib/icons/air-conditioner.png", false],
+    ["TV", "lib/icons/smart-tv.png", false],
+    ["Fan", "lib/icons/fan.png", false],
+  ];
 
   @override
   void initState() {
-
+    super.initState();
+    _initializeNotifications();
     _initBluetooth();
     _getCurrentUser();
 
-
-    super.initState();
     auth = LocalAuthentication();
     auth.isDeviceSupported().then(
           (bool isSupported) {
@@ -46,6 +58,17 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
+  }
+
+  void _initializeNotifications() {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final initializationSettingsIOS = IOSInitializationSettings();
+    final initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   Future<void> _authenticate() async {
@@ -93,29 +116,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-  final double horizontalPadding = 40;
-  final double verticalPadding = 25;
-  BluetoothConnection? connection;
-  String username = "";
-
-  List mySmartDevices = [
-    ["Kitchen", "lib/icons/light-bulb.png", false],
-    ["AC", "lib/icons/air-conditioner.png", false],
-    ["TV", "lib/icons/smart-tv.png", false],
-    ["Fan", "lib/icons/fan.png", false],
-  ];
-
-  /*
-  @override
-  void initState() {
-    super.initState();
-    _initBluetooth();
-    _getCurrentUser();
-  }
-
-   */
-
   void _initBluetooth() async {
     // Initialize Bluetooth connection (assuming the device is already paired)
     String address = "98:D3:11:FD:35:8F";
@@ -134,34 +134,29 @@ class _HomePageState extends State<HomePage> {
     String message = utf8.decode(data);
     print("Received message: $message");
 
-    if (message.contains("** Warning!!!!   Fire detected!!! **")) {
-      print("Fire detected message received!");
-      DelightToastBar(
-        builder: (context) {
-          return const ToastCard(
-            leading: Icon(
-              Icons.local_fire_department_rounded,
-              size: 32,
-              color: Colors.white,
-            ),
-            title: Text(
-              "Potential Fire Detected",
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-                backgroundColor: Colors.red,
-                color: Colors.white,
-              ),
-            ),
-          );
-        },
-        position: DelightSnackbarPosition.top,
-        autoDismiss: true,
-        snackbarDuration: Durations.extralong4,
-      ).show(context);
-    }
+    if (message.contains('A')) {
+      _showNotification("Fire detected!");    }
   }
 
+
+  Future<void> _showNotification(String message) async {
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'fire_alert_channel',
+      'Fire Alerts',
+      channelDescription: 'Channel for fire alert notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    const platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Fire Alert',
+      message,
+      platformChannelSpecifics,
+      payload: 'item x',
+    );
+  }
 
   void sendMessage(String message) async {
     if (connection != null && connection!.isConnected) {
@@ -201,7 +196,6 @@ class _HomePageState extends State<HomePage> {
         snackbarDuration: Durations.extralong4,
       ).show(context);
     }
-
 
     String command;
     switch (index) {
@@ -255,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => BluetoothDeviceListScreen()),
+                          MaterialPageRoute(builder: (context) => FireAlertPage()),
                         );
                       },
                       child: Image.asset(
